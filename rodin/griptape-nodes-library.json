@@ -1,0 +1,54 @@
+{
+    "name": "Rodin 3D Library",
+    "library_schema_version": "0.1.0",
+    "settings": [
+        {
+            "description": "Environment variables for storing Rodin API credentials",
+            "category": "nodes.Rodin",
+            "contents": {
+                "RODIN_API_KEY": "$RODIN_API_KEY"
+            }
+        }
+    ],
+    "metadata": {
+        "author": "Griptape",
+        "description": "Nodes for generating 3D models using the Rodin API",
+        "library_version": "0.1.0",
+        "engine_version": "0.39.0",
+        "tags": [
+            "Griptape",
+            "AI",
+            "Rodin",
+            "3D Generation",
+            "Text-to-3D",
+            "Image-to-3D",
+            "GLTF"
+        ],
+        "dependencies": {
+            "pip_dependencies": [
+                "requests"
+            ]
+        }
+    },
+    "categories": [
+        {
+            "3D/Rodin": {
+                "color": "border-blue-500",
+                "title": "3D/Rodin",
+                "description": "Nodes for 3D model generation using Rodin AI.",
+                "icon": "Cube"
+            }
+        }
+    ],
+    "nodes": [
+        {
+            "class_name": "Rodin3DGenerator",
+            "file_path": "rodin_3d_generator.py",
+            "metadata": {
+                "category": "3D/Rodin",
+                "description": "Generates 3D models from text prompts or images using the Rodin AI API. Supports both Text-to-3D and Image-to-3D generation with advanced customization options.",
+                "display_name": "Rodin 3D Generator"
+            }
+        }
+    ]
+}

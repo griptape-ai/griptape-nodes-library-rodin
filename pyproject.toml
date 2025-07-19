@@ -1,14 +1,15 @@
 [project]
-name = "example_nodes_template"
+name = "griptape-nodes-library-rodin"
 version = "0.1.0"
-description = "Template for Users to create Custom Libraries and Nodes"
+description = "Griptape Nodes library for 3D model generation using the Rodin AI API"
 authors = [
-    {name = "Your Name",email = "you@example.com"}
+    {name = "Griptape", email = "hello@griptape.ai"}
 ]
 readme = "README.md"
 requires-python = "~=3.12"
 dependencies = [
     "griptape-nodes",
+    "requests",
 ]
 
 [tool.uv.sources]
