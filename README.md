@@ -1,6 +1,6 @@
-# Griptape Nodes: Rodin 3D Library
+# Griptape Nodes: Hyper3D Rodin Library
 
-A Griptape Nodes library for generating 3D models using the Rodin AI API. This library provides nodes for both Text-to-3D and Image-to-3D generation with advanced customization options.
+A Griptape Nodes library for generating 3D models using the Hyper3D Rodin API. This library provides nodes for both Text-to-3D and Image-to-3D generation with advanced customization options.
 
 ## Features
 
@@ -29,13 +29,13 @@ A Griptape Nodes library for generating 3D models using the Rodin AI API. This l
 
 ### Environment Variables
 
-This library requires a Rodin API key. Set the following environment variable:
+This library requires a Hyper3D Rodin API key. Set the following environment variable:
 
 ```bash
 export RODIN_API_KEY="your_rodin_api_key_here"
 ```
 
-You can obtain a Rodin API key from [Rodin AI](https://rodin.ai/).
+You can obtain a Hyper3D Rodin API key from [Hyper3D](https://hyper3d.ai/).
 
 ### Griptape Nodes Setup
 
@@ -94,12 +94,12 @@ Generates 3D models from text prompts or images using the Rodin AI API.
 
 ## API Reference
 
-This library uses the Rodin AI API v2. For more information about the underlying API, visit the [Rodin AI documentation](https://rodin.ai/docs).
+This library uses the Hyper3D Rodin AI API v2. For more information about the underlying API, visit the [Hyper3D API documentation](https://developer.hyper3d.ai/).
 
 ## Support
 
 For issues related to this library, please open an issue on the GitHub repository.
-For Rodin API-related questions, please refer to the official Rodin documentation.
+For Hyper3D API-related questions, please refer to the official Hyper3D documentation.
 
 ## License
 
