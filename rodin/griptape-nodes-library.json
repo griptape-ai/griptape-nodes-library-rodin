@@ -3,10 +3,12 @@
     "library_schema_version": "0.1.0",
     "settings": [
         {
-            "description": "Environment variables for storing Rodin API credentials",
-            "category": "nodes.Rodin",
+            "description": "API keys required by nodes in this library",
+            "category": "app_events.on_app_initialization_complete",
             "contents": {
-                "RODIN_API_KEY": "$RODIN_API_KEY"
+                "secrets_to_register": [
+                    "RODIN_API_KEY"
+                ]
             }
         }
     ],

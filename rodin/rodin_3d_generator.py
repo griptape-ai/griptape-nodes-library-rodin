@@ -1,6 +1,4 @@
-import os
 import time
-import tempfile
 import json
 import requests
 from typing import Any
@@ -228,7 +226,7 @@ class Rodin3DGenerator(ControlNode):
         Returns:
             list[Exception] | None: List of exceptions if validation fails, None if validation passes.
         """
-        api_key = self.get_config_value(service=SERVICE, value=API_KEY_ENV_VAR)
+        api_key = GriptapeNodes.SecretsManager().get_secret(API_KEY_ENV_VAR)
 
         errors = []
         if not api_key:
@@ -251,9 +249,9 @@ class Rodin3DGenerator(ControlNode):
                 self.parameter_output_values["task_uuid"] = ""
                 logger.debug("✅ Initialization complete")
 
-                # Get API key from environment
-                logger.debug("🔑 Getting API key from config...")
-                api_key = self.get_config_value(service=SERVICE, value=API_KEY_ENV_VAR)
+                # Get API key from secrets manager
+                logger.debug("🔑 Getting API key from secrets manager...")
+                api_key = GriptapeNodes.SecretsManager().get_secret(API_KEY_ENV_VAR)
                 logger.debug(f"🔑 API key retrieved: {bool(api_key)} (length: {len(api_key) if api_key else 0})")
                 if not api_key or not api_key.strip():
                     logger.debug("❌ API key validation failed")
