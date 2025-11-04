@@ -540,139 +540,97 @@ class Rodin3DGenerator(ControlNode):
 
         logger.debug(f"🔍 Analyzing {len(download_items)} generated files...")
         
-        all_file_urls = []
-        file_names = []
-        
-        for item in download_items:
-            all_file_urls.append(item['url'])
-            file_names.append(item['name'])
-
-        # Process and download files
-        logger.debug(f"📝 Processing {len(download_items)} files...")
-        primary_model_url = None
-        primary_model_name = None
-        
-        # Find the preferred format file
+        # Discover the primary model target by format preference
         requested_format = self.get_parameter_value("geometry_file_format")
+        primary_name_preferred = None
         for item in download_items:
             file_name = item['name']
             if file_name.lower().endswith(f'.{requested_format}'):
-                primary_model_url = item['url']
-                primary_model_name = file_name
-                logger.debug(f"🎯 Found primary model: {file_name}")
+                primary_name_preferred = file_name
+                logger.debug(f"🎯 Preferred primary by format: {file_name}")
                 break
-
-        # If no exact format match, use the first model file
-        if not primary_model_url:
-            logger.debug(f"🔍 No {requested_format} found, searching for any 3D model...")
+        if not primary_name_preferred:
+            logger.debug(f"🔍 No exact .{requested_format} found, searching for any 3D model...")
             model_extensions = ['.glb', '.usdz', '.fbx', '.obj', '.stl']
             for item in download_items:
                 for ext in model_extensions:
                     if item['name'].lower().endswith(ext):
-                        primary_model_url = item['url']
-                        primary_model_name = item['name']
-                        logger.debug(f"🎯 Using fallback model: {item['name']}")
+                        primary_name_preferred = item['name']
+                        logger.debug(f"🎯 Fallback primary: {item['name']}")
                         break
-                if primary_model_url:
+                if primary_name_preferred:
                     break
-
-        if not primary_model_url:
+        if not primary_name_preferred:
             raise Exception("No 3D model file found in generated results")
 
-        # Download the primary model file
-        logger.debug(f"⬇️ Starting download of {primary_model_name}")
-        logger.debug(f"⬇️ Starting download of {primary_model_name}...")
-        
-        try:
-            # Start download with progress
-            logger.debug(f"🌐 Making GET request to {primary_model_url}")
-            logger.debug(f"🌐 Requesting {primary_model_name} from server...")
-            model_response = requests.get(primary_model_url, timeout=120, stream=True)  # Stream for large files
-            logger.debug(f"📡 File download responded with status {model_response.status_code}")
-            model_response.raise_for_status()
-            
-            # Check file size
-            content_length = model_response.headers.get('content-length')
-            if content_length:
-                total_size = int(content_length)
-                logger.debug(f"📊 File size: {total_size / (1024 * 1024):.1f}MB - downloading...")
-            else:
-                logger.debug(f"📊 Downloading {primary_model_name} (size unknown)...")
-            
-            # Download in chunks
-            model_bytes = b''
-            downloaded_size = 0
-            
-            for chunk in model_response.iter_content(chunk_size=8192):
-                if chunk:
-                    model_bytes += chunk
-                    downloaded_size += len(chunk)
-                    
-                    # Progress update every 1MB
-                    if downloaded_size % (1024 * 1024) == 0:
-                        mb_downloaded = downloaded_size / (1024 * 1024)
-                        if content_length:
-                            progress = (downloaded_size / total_size) * 100
-                            logger.debug(f"⬇️ Downloaded {mb_downloaded:.1f}MB ({progress:.1f}%)")
-                        else:
-                            logger.debug(f"⬇️ Downloaded {mb_downloaded:.1f}MB...")
-            
-            file_size_mb = len(model_bytes) / (1024 * 1024)
-            logger.debug(f"✅ Download complete: {primary_model_name} ({file_size_mb:.1f}MB)")
-            
-        except requests.exceptions.Timeout:
-            raise Exception(f"Download timeout for {primary_model_name} after 120 seconds")
-        except requests.exceptions.RequestException as e:
-            raise Exception(f"Failed to download {primary_model_name}: {str(e)}")
+        # Prepare for downloading and saving all files locally
+        logger.debug(f"📝 Processing {len(download_items)} files for local storage...")
+        timestamp = int(time.time())
+        static_files_manager = GriptapeNodes.StaticFilesManager()
 
-        # Save to static files
-        logger.debug(f"💾 Preparing to save {primary_model_name} to local storage")
-        logger.debug(f"💾 Preparing to save {primary_model_name} to local storage...")
-        
-        try:
-            # Generate unique filename
-            timestamp = int(time.time())
-            file_extension = primary_model_name.split('.')[-1]
-            static_filename = f"rodin_3d_{timestamp}.{file_extension}"
-            logger.debug(f"📝 Generated filename: {static_filename}")
-            
-            logger.debug("🔧 Creating static file manager...")
-            logger.debug("🔧 Creating StaticFilesManager instance...")
-            
-            # Use GriptapeNodes static file manager
-            static_files_manager = GriptapeNodes.StaticFilesManager()
-            logger.debug("✅ StaticFilesManager created successfully")
-            
-            logger.debug(f"💾 Saving {file_size_mb:.1f}MB to static storage as {static_filename}...")
-            logger.debug(f"💾 About to call save_static_file with {file_size_mb:.1f}MB")
-            static_url = static_files_manager.save_static_file(model_bytes, static_filename)
-            logger.debug(f"✅ save_static_file completed: {static_url}")
-            
-            logger.debug(f"🗂️ Successfully saved as static file: {static_filename}")
-            logger.debug(f"🔗 Static URL: {static_url}")
-            
-        except Exception as e:
-            logger.debug(f"❌ Failed to save static file: {str(e)}")
-            raise Exception(f"Failed to save model file: {str(e)}")
+        local_urls: list[str] = []
+        local_file_names: list[str] = []
+        primary_static_url = None
+        primary_original_name = None
+        primary_file_size_mb = None
 
-        # Show file summary
-        file_summary = ", ".join(file_names)
-        logger.debug(f"📁 Generated files: {file_summary}")
+        for index, item in enumerate(download_items):
+            original_name = item['name']
+            remote_url = item['url']
+            logger.debug(f"⬇️ Downloading {original_name} from {remote_url}")
 
-        # Create the GLTF artifact with static URL and metadata
+            try:
+                response = requests.get(remote_url, timeout=120, stream=True)
+                logger.debug(f"📡 Download status for {original_name}: {response.status_code}")
+                response.raise_for_status()
+
+                file_bytes = b''
+                for chunk in response.iter_content(chunk_size=8192):
+                    if chunk:
+                        file_bytes += chunk
+
+                # Create a unique, readable local filename preserving the original extension
+                safe_suffix = original_name.rsplit('.', 1)[-1] if '.' in original_name else 'bin'
+                base_name = original_name.rsplit('.', 1)[0] if '.' in original_name else original_name
+                static_filename = f"rodin_3d_{timestamp}_{index+1}_{base_name}.{safe_suffix}"
+
+                logger.debug(f"💾 Saving {original_name} as {static_filename}...")
+                static_url = static_files_manager.save_static_file(file_bytes, static_filename)
+                logger.debug(f"🔗 Local URL for {original_name}: {static_url}")
+
+                local_file_names.append(static_filename)
+                local_urls.append(static_url)
+
+                if original_name == primary_name_preferred:
+                    primary_static_url = static_url
+                    primary_original_name = original_name
+                    primary_file_size_mb = len(file_bytes) / (1024 * 1024)
+
+            except requests.exceptions.Timeout:
+                raise Exception(f"Download timeout for {original_name} after 120 seconds")
+            except requests.exceptions.RequestException as e:
+                raise Exception(f"Failed to download {original_name}: {str(e)}")
+            except Exception as e:
+                raise Exception(f"Failed to save file {original_name}: {str(e)}")
+
+        # Validate we captured a primary model locally
+        if not primary_static_url:
+            raise Exception("Primary model file was not saved locally as expected")
+
+        # Create the GLTF artifact with local URL and metadata
         metadata = {
-            "filename": static_filename,
-            "original_name": primary_model_name,
-            "file_size_mb": file_size_mb,
+            "filename": local_file_names[0] if local_file_names else None,
+            "original_name": primary_original_name,
+            "file_size_mb": primary_file_size_mb,
             "format": requested_format,
-            "generated_files": file_names
+            "generated_files": local_file_names
         }
-        model_artifact = GLTFUrlArtifact(value=static_url, name=static_filename, metadata=metadata)
+        model_artifact = GLTFUrlArtifact(value=primary_static_url, name=primary_original_name or "rodin_3d_model", metadata=metadata)
 
-        # Set outputs
+        # Set outputs: primary model and list of local URL strings
         self.publish_update_to_parameter("gltf_model", model_artifact)
-        self.publish_update_to_parameter("all_files", all_file_urls)
-        logger.debug(f"✅ Complete! Ready to load 3D model ({len(download_items)} files generated)")
+        self.publish_update_to_parameter("all_files", local_urls)
+        logger.debug(f"✅ Complete! Stored {len(local_urls)} local files and set outputs")
         
         logger.debug("✅ _process_downloads method EXIT - returning artifact")
-        return model_artifact 
+        return model_artifact
