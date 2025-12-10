@@ -8,7 +8,6 @@ from griptape_nodes.exe_types.core_types import Parameter, ParameterList, Parame
 from griptape_nodes.exe_types.node_types import AsyncResult, ControlNode
 from griptape_nodes.retained_mode.griptape_nodes import GriptapeNodes, logger
 from griptape_nodes.traits.options import Options
-from griptape_nodes.utils.url_utils import load_content_from_uri
 
 SERVICE = "Rodin"
 API_KEY_ENV_VAR = "RODIN_API_KEY"
@@ -441,8 +440,8 @@ class Rodin3DGenerator(ControlNode):
                 if not isinstance(image_artifact, ImageUrlArtifact):
                     raise ValueError(f"Image {i + 1} must be an ImageUrlArtifact")
 
-                # Download image content using load_content_from_uri which handles file://, http://, and https:// URIs
-                image_content = load_content_from_uri(image_artifact.value, timeout=30.0)
+                # Download image content using to_bytes() which handles file://, http://, and https:// URIs
+                image_content = image_artifact.to_bytes()
 
                 # Add to files for multipart upload
                 files.append(("images", (f"image_{i + 1}.jpg", image_content, "image/jpeg")))
