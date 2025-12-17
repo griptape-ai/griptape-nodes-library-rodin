@@ -15,8 +15,8 @@
     "metadata": {
         "author": "Griptape",
         "description": "Nodes for generating 3D models using the Rodin API",
-        "library_version": "0.1.0",
-        "engine_version": "0.39.0",
+        "library_version": "0.1.1",
+        "engine_version": "0.66.0",
         "tags": [
             "Griptape",
             "AI",
