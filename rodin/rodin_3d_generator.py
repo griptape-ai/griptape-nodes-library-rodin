@@ -7,6 +7,7 @@ from griptape_nodes.exe_types.core_types import Parameter, ParameterMode, Parame
 from griptape_nodes.exe_types.node_types import DataNode, ControlNode, AsyncResult
 from griptape_nodes.traits.options import Options
 from griptape_nodes.retained_mode.griptape_nodes import GriptapeNodes, logger
+from griptape_nodes.retained_mode.events.os_events import ExistingFilePolicy
 
 SERVICE = "Rodin"
 API_KEY_ENV_VAR = "RODIN_API_KEY"
@@ -595,7 +596,7 @@ class Rodin3DGenerator(ControlNode):
                 static_filename = f"rodin_3d_{timestamp}_{index+1}_{base_name}.{safe_suffix}"
 
                 logger.debug(f"💾 Saving {original_name} as {static_filename}...")
-                static_url = static_files_manager.save_static_file(file_bytes, static_filename)
+                static_url = static_files_manager.save_static_file(file_bytes, static_filename, ExistingFilePolicy.CREATE_NEW)
                 logger.debug(f"🔗 Local URL for {original_name}: {static_url}")
 
                 local_file_names.append(static_filename)
