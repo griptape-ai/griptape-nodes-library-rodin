@@ -8,6 +8,7 @@ from griptape_nodes.exe_types.node_types import DataNode, ControlNode, AsyncResu
 from griptape_nodes.traits.options import Options
 from griptape_nodes.retained_mode.griptape_nodes import GriptapeNodes, logger
 from griptape_nodes.retained_mode.events.os_events import ExistingFilePolicy
+from griptape_nodes.files.file import File, FileLoadError
 
 SERVICE = "Rodin"
 API_KEY_ENV_VAR = "RODIN_API_KEY"
@@ -430,11 +431,10 @@ class Rodin3DGenerator(ControlNode):
                     raise ValueError(f"Image {i+1} must be an ImageUrlArtifact")
                 
                 # Download image content
-                image_response = requests.get(image_artifact.value, timeout=30)
-                image_response.raise_for_status()
+                image_bytes = File(image_artifact.value).read_bytes()
                 
                 # Add to files for multipart upload
-                files.append(('images', (f'image_{i+1}.jpg', image_response.content, 'image/jpeg')))
+                files.append(('images', (f'image_{i+1}.jpg', image_bytes, 'image/jpeg')))
 
             # Add condition_mode for multi-image
             if len(images_input) > 1:
