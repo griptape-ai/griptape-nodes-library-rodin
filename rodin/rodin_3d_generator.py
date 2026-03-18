@@ -7,8 +7,8 @@ from griptape_nodes.exe_types.core_types import Parameter, ParameterMode, Parame
 from griptape_nodes.exe_types.node_types import DataNode, ControlNode, AsyncResult
 from griptape_nodes.traits.options import Options
 from griptape_nodes.retained_mode.griptape_nodes import GriptapeNodes, logger
-from griptape_nodes.retained_mode.events.os_events import ExistingFilePolicy
 from griptape_nodes.files.file import File, FileLoadError
+from griptape_nodes.files.project_file import ProjectFileDestination
 
 SERVICE = "Rodin"
 API_KEY_ENV_VAR = "RODIN_API_KEY"
@@ -566,8 +566,6 @@ class Rodin3DGenerator(ControlNode):
 
         # Prepare for downloading and saving all files locally
         logger.debug(f"📝 Processing {len(download_items)} files for local storage...")
-        timestamp = int(time.time())
-        static_files_manager = GriptapeNodes.StaticFilesManager()
 
         local_urls: list[str] = []
         local_file_names: list[str] = []
@@ -590,20 +588,20 @@ class Rodin3DGenerator(ControlNode):
                     if chunk:
                         file_bytes += chunk
 
-                # Create a unique, readable local filename preserving the original extension
+                # Save using project-aware file destination
                 safe_suffix = original_name.rsplit('.', 1)[-1] if '.' in original_name else 'bin'
                 base_name = original_name.rsplit('.', 1)[0] if '.' in original_name else original_name
-                static_filename = f"rodin_3d_{timestamp}_{index+1}_{base_name}.{safe_suffix}"
+                dest = ProjectFileDestination(filename=f"rodin_3d_{base_name}.{safe_suffix}", situation="save_node_output")
+                saved = dest.write_bytes(file_bytes)
+                saved_location = saved.location
 
-                logger.debug(f"💾 Saving {original_name} as {static_filename}...")
-                static_url = static_files_manager.save_static_file(file_bytes, static_filename, ExistingFilePolicy.CREATE_NEW)
-                logger.debug(f"🔗 Local URL for {original_name}: {static_url}")
+                logger.debug(f"🔗 Saved {original_name} as {saved_location}")
 
-                local_file_names.append(static_filename)
-                local_urls.append(static_url)
+                local_file_names.append(f"rodin_3d_{base_name}.{safe_suffix}")
+                local_urls.append(saved_location)
 
                 if original_name == primary_name_preferred:
-                    primary_static_url = static_url
+                    primary_static_url = saved_location
                     primary_original_name = original_name
                     primary_file_size_mb = len(file_bytes) / (1024 * 1024)
 
