@@ -606,7 +606,7 @@ class Rodin3DGenerator(ControlNode):
                 # Save using project-aware file destination
                 safe_suffix = original_name.rsplit(".", 1)[-1] if "." in original_name else "bin"
                 base_name = original_name.rsplit(".", 1)[0] if "." in original_name else original_name
-                dest = ProjectFileDestination(
+                dest = ProjectFileDestination.from_situation(
                     filename=f"rodin_3d_{base_name}.{safe_suffix}", situation="save_node_output"
                 )
                 saved = dest.write_bytes(file_bytes)
