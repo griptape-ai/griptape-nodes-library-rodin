@@ -1,3 +1,5 @@
+# Deprecate in favor of https://github.com/griptape-ai/griptape-nodes-library-standard/blob/main/griptape_nodes_library/three_d/rodin_2_3d_generation.py
+
 # Griptape Nodes: Hyper3D Rodin Library
 
 A Griptape Nodes library for generating 3D models using the Hyper3D Rodin API. This library provides nodes for both Text-to-3D and Image-to-3D generation with advanced customization options.
